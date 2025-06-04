@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Intrusion Detection System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .attack { 
+            background-color: #ffe6e6;
+            color: #d63031;
+            border-left: 4px solid #ff0000;
+        }
+        .normal { 
+            background-color: #e6ffe6;
+            color: #27ae60;
+            border-left: 4px solid #00b894;
+        }
+        #traffic-log div {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d3436;
+            border-bottom: 2px solid #dfe6e9;
+            padding-bottom: 10px;
+        }
+        #traffic-log {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Intrusion Detection System</h1>
+    <div id="traffic-log"></div>
+
+    <script>
+        var socket = io();
+        var trafficLog = document.getElementById('traffic-log');
+
+        socket.on('packet_info', function(data) {
+            var entry = document.createElement('div');
+            entry.className = data.status.toLowerCase();
+            
+            var content = `[${data.timestamp}] ${data.status.toUpperCase()}`;
+            if (data.attack_type) {
+                content += ` - Type: ${data.attack_type}`;
+            }
+            content += `\nSource IP: ${data.source_ip || 'N/A'} → Destination IP: ${data.dest_ip || 'N/A'}`;
+            content += `\nPacket: ${data.packet_summary}`;
+            
+            entry.textContent = content;
+            trafficLog.insertBefore(entry, trafficLog.firstChild);
+
+            // Keep only the last 100 entries to prevent browser memory issues
+            if (trafficLog.children.length > 100) {
+                trafficLog.removeChild(trafficLog.lastChild);
+            }
+        });
+    </script>
+</body>
+</html>
